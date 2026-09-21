@@ -1,0 +1,294 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --color-player-blue: #64B5F6;
+  --color-player-coral: #FF8A80;
+  --color-bg-cream: #FFF8F0;
+  --color-bg-peach: #FFE8D6;
+  --color-surface: rgba(255, 255, 255, 0.88);
+  --color-text-primary: #5D4037;
+  --color-text-secondary: #8D6E63;
+}
+
+/* ─── Base ─── */
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: linear-gradient(145deg, #FFF8F0 0%, #FFE8D6 50%, #FFF0E0 100%);
+  color: #5D4037;
+}
+
+/* ─── Floating background decorations ─── */
+@keyframes float-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(3deg); }
+  50% { transform: translateY(-6px) rotate(-2deg); }
+  75% { transform: translateY(-15px) rotate(4deg); }
+}
+
+@keyframes float-drift-alt {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-18px) rotate(-5deg); }
+  66% { transform: translateY(-8px) rotate(3deg); }
+}
+
+.float-decoration {
+  animation: float-drift 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.float-decoration-alt {
+  animation: float-drift-alt 13s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ─── Confetti animation ─── */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100dvh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti-fall {
+  animation: confetti-fall var(--duration, 2s) ease-in forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+/* ─── Dice tumble ─── */
+@keyframes dice-tumble {
+  0%   { transform: rotate(0deg) scale(1); }
+  10%  { transform: rotate(18deg) scale(1.08); }
+  20%  { transform: rotate(-15deg) scale(0.96); }
+  30%  { transform: rotate(12deg) scale(1.06); }
+  40%  { transform: rotate(-10deg) scale(0.98); }
+  50%  { transform: rotate(8deg) scale(1.04); }
+  60%  { transform: rotate(-6deg) scale(0.99); }
+  70%  { transform: rotate(5deg) scale(1.02); }
+  80%  { transform: rotate(-3deg) scale(1.0); }
+  90%  { transform: rotate(1deg) scale(1.01); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.animate-dice-tumble {
+  animation: dice-tumble 2.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* ─── Dice container shake ─── */
+@keyframes dice-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2px, 1px); }
+  20% { transform: translate(2px, -1px); }
+  30% { transform: translate(-1px, 2px); }
+  40% { transform: translate(1px, -2px); }
+  50% { transform: translate(-2px, -1px); }
+  60% { transform: translate(2px, 1px); }
+  70% { transform: translate(-1px, -1px); }
+  80% { transform: translate(1px, 2px); }
+  90% { transform: translate(-1px, 1px); }
+}
+
+.animate-dice-shake {
+  animation: dice-shake 0.3s ease-in-out infinite;
+}
+
+/* ─── Pulse glow for active turn (roll button) ─── */
+@keyframes pulse-glow-blue {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(100, 181, 246, 0.3); }
+  50% { box-shadow: 0 0 18px 6px rgba(100, 181, 246, 0.5); }
+}
+
+.animate-pulse-glow-cyan {
+  animation: pulse-glow-blue 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-coral {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(255, 138, 128, 0.3); }
+  50% { box-shadow: 0 0 18px 6px rgba(255, 138, 128, 0.5); }
+}
+
+.animate-pulse-glow-amber {
+  animation: pulse-glow-coral 2s ease-in-out infinite;
+}
+
+/* ─── Pawn idle bounce (active turn) ─── */
+@keyframes pawn-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.pawn-active-cyan {
+  animation: pawn-bounce 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(100, 181, 246, 0.5));
+}
+
+.pawn-active-amber {
+  animation: pawn-bounce 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 138, 128, 0.5));
+}
+
+/* ─── Tile highlight flash ─── */
+@keyframes tile-highlight {
+  0% { transform: scale(1); box-shadow: none; }
+  40% { transform: scale(1.06); box-shadow: 0 0 12px var(--highlight-color, rgba(100,181,246,0.4)); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+
+.tile-highlight {
+  animation: tile-highlight 0.35s ease-out;
+}
+
+/* ─── Special square idle shimmer ─── */
+@keyframes shimmer-red {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer-green {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+.tile-snake-shimmer {
+  animation: shimmer-red 3s ease-in-out infinite;
+}
+
+.tile-ladder-shimmer {
+  animation: shimmer-green 3s ease-in-out infinite;
+}
+
+/* ─── Warm glass card (light theme) ─── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(210, 180, 140, 0.35);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 4px 20px rgba(93, 64, 55, 0.08),
+    0 1px 4px rgba(93, 64, 55, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ─── Warm input field ─── */
+.input-warm {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(210, 180, 140, 0.4);
+  color: #5D4037;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  outline: none;
+  min-height: 48px;
+}
+
+.input-warm::placeholder {
+  color: #A1887F;
+}
+
+.input-warm:focus {
+  border-color: #A1887F;
+  box-shadow: 0 0 0 3px rgba(161, 136, 127, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* ─── Turn banner active glow ─── */
+.turn-banner-active {
+  position: relative;
+}
+
+.turn-banner-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.6;
+  animation: turn-pulse 2s ease-in-out infinite;
+}
+
+@keyframes turn-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* ─── Board frame ─── */
+.board-frame {
+  background: linear-gradient(145deg, #D4A574 0%, #C49A6C 40%, #B8860B 100%);
+  border-radius: 1.25rem;
+  padding: 7px;
+  box-shadow:
+    0 8px 32px rgba(93, 64, 55, 0.2),
+    0 2px 8px rgba(139, 105, 20, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Board inner surface ─── */
+.board-surface {
+  border-radius: 0.875rem;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(93, 64, 55, 0.1);
+}
+
+/* ─── Emoji float animation ─── */
+@keyframes emoji-float {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-60px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(0.8);
+  }
+}
+
+.animate-emoji-float {
+  animation: emoji-float 1.5s ease-out forwards;
+}
+
+/* ─── Scrollbar styling ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(93, 64, 55, 0.2);
+  border-radius: 3px;
+}
+
+/* ─── Reduced motion fallbacks ─── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-confetti-fall,
+  .animate-dice-tumble,
+  .animate-dice-shake,
+  .animate-pulse-glow-cyan,
+  .animate-pulse-glow-amber,
+  .pawn-active-cyan,
+  .pawn-active-amber,
+  .tile-highlight,
+  .tile-snake-shimmer,
+  .tile-ladder-shimmer,
+  .float-decoration,
+  .float-decoration-alt,
+  .animate-emoji-float {
+    animation: none !important;
+  }
+}
