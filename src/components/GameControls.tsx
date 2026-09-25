@@ -132,11 +132,17 @@ export function GameControls({
 
   const lastDice = animationPhase === "rolling" ? null : (room.lastMove?.diceValue ?? null);
   const playerUids = Object.keys(room.players);
-  const currentTurnColor = room.players[room.turn]?.color ?? "cyan";
-  const currentTurnName = room.players[room.turn]?.displayName ?? "Player";
+  const displayedTurnUid =
+    animationPhase !== "idle" && room.lastMove
+      ? room.lastMove.playerId
+      : room.turn;
+  const currentTurnColor = room.players[displayedTurnUid]?.color ?? "cyan";
+  const currentTurnName =
+    room.players[displayedTurnUid]?.displayName ?? "Player";
   const myColor = room.players[uid]?.color ?? "cyan";
+  const isDisplayedMyTurn = displayedTurnUid === uid;
   const effectiveWaitingMessageIndex =
-    isMyTurn || animationPhase !== "idle" ? 0 : waitingMessageIndex;
+    isDisplayedMyTurn || animationPhase !== "idle" ? 0 : waitingMessageIndex;
   const movingTarget =
     animationPhase !== "rolling" && animationPhase !== "idle"
       ? room.lastMove
@@ -152,7 +158,7 @@ export function GameControls({
     room.turn === room.lastMove.playerId;
   const turnLabel = bonusReady
     ? "Bonus Roll!"
-    : isMyTurn
+    : isDisplayedMyTurn
       ? "Your Turn"
       : effectiveWaitingMessageIndex === 0
         ? `${currentTurnName}'s Turn`
@@ -170,9 +176,9 @@ export function GameControls({
       <div
         className={`w-full rounded-xl overflow-hidden transition-all duration-500 border-2 ${
           TURN_BG[turnColor]
-        } ${isMyTurn ? "turn-banner-active" : ""}`}
+        } ${isDisplayedMyTurn ? "turn-banner-active" : ""}`}
         style={{
-          boxShadow: isMyTurn
+          boxShadow: isDisplayedMyTurn
             ? `0 0 16px ${GLOW_COLOR[myColor]}`
             : "none",
         }}
@@ -189,7 +195,7 @@ export function GameControls({
             <span className="text-lg">🎲</span>
             <span
               className={`text-base font-bold transition-colors duration-300 ${
-                isMyTurn
+                isDisplayedMyTurn
                   ? TEXT_COLOR[myColor]
                   : "text-stone-400"
               }`}
@@ -219,7 +225,7 @@ export function GameControls({
                   ? pendingMove.from
                   : (room.positions[playerUid] ?? 0)
               }
-              isActive={room.turn === playerUid}
+              isActive={displayedTurnUid === playerUid}
               label={playerUid === uid ? "You" : `Player ${index + 1}`}
               connected={playerUid === uid ? true : player.connected}
               lastDice={lastDice}

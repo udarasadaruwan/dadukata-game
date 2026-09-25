@@ -53,7 +53,7 @@ function WaitingLobby({ roomCode }: { roomCode: string }) {
         transition={{ duration: 0.4 }}
       >
         <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-red-400 bg-clip-text text-transparent mb-2">
-          Dathukata
+          Dadukata
         </h1>
         <p className="text-stone-500 text-sm mb-6">Room created! Share the code below with your friends.</p>
 
@@ -171,7 +171,7 @@ export function GameScreen({ room, roomCode, uid }: GameScreenProps) {
       {/* Header */}
       <header className="text-center mb-3">
         <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-red-400 bg-clip-text text-transparent">
-          Dathukata
+          Dadukata
         </h1>
       </header>
 
@@ -183,7 +183,11 @@ export function GameScreen({ room, roomCode, uid }: GameScreenProps) {
         lastMove={room.lastMove}
         animationPhase={game.animationPhase}
         onMoveComplete={game.onMoveAnimationComplete}
-        currentTurnUid={room.turn}
+        currentTurnUid={
+          game.animationPhase !== "idle" && room.lastMove
+            ? room.lastMove.playerId
+            : room.turn
+        }
       />
 
       {/* Controls */}

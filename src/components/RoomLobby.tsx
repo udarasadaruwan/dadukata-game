@@ -82,7 +82,7 @@ export function RoomLobby({
         {/* Title */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-red-400 bg-clip-text text-transparent">
-            Dathukata
+            Dadukata
           </h1>
           <p className="text-stone-500 text-sm mt-1">
             Snakes & Ladders · 2-4 Players
