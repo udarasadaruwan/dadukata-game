@@ -171,7 +171,7 @@ export function GameControls({
         : null;
 
   return (
-    <div className="w-full max-w-[500px] mx-auto flex flex-col items-center gap-3">
+    <div className="game-controls w-full max-w-[500px] mx-auto flex flex-col items-center">
       {/* Turn Indicator */}
       <div
         className={`w-full rounded-xl overflow-hidden transition-all duration-500 border-2 ${
@@ -190,7 +190,7 @@ export function GameControls({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="px-4 py-3 flex items-center justify-center gap-2"
+            className="turn-banner-content px-4 flex items-center justify-center gap-2"
           >
             <span className="text-lg">🎲</span>
             <span
@@ -212,7 +212,7 @@ export function GameControls({
       </div>
 
       {/* Player info */}
-      <div className="w-full grid grid-cols-2 gap-2">
+      <div className="player-grid w-full grid grid-cols-2">
         {playerUids.map((playerUid, index) => {
           const player = room.players[playerUid];
           return (
@@ -240,7 +240,7 @@ export function GameControls({
       </div>
 
       {/* Dice + Roll Button */}
-      <div className="flex items-center gap-4">
+      <div className="dice-row flex items-center">
         <Dice
           lastMove={room.lastMove}
           isRolling={isRolling}
@@ -253,7 +253,7 @@ export function GameControls({
             whileTap={canRoll ? { scale: 0.94 } : {}}
             onClick={onRoll}
             disabled={!canRoll}
-            className={`py-3.5 px-8 rounded-xl font-bold text-white text-lg
+            className={`roll-button py-3.5 px-8 rounded-xl font-bold text-white text-lg
               transition-all duration-200 cursor-pointer min-h-[48px]
               ${
                 canRoll
@@ -318,7 +318,7 @@ function PlayerCard({
 }) {
   return (
     <div
-      className={`glass-card px-3 py-2.5 flex items-center gap-2.5 transition-all duration-300 ${
+      className={`player-card glass-card px-3 py-2.5 flex items-center gap-2.5 transition-all duration-300 ${
         isActive
           ? `ring-2 ${BORDER_GLOW[color]} shadow-lg`
           : "opacity-60"

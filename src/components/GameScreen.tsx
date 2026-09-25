@@ -165,11 +165,11 @@ export function GameScreen({ room, roomCode, uid }: GameScreenProps) {
     : "cyan";
 
   return (
-    <div className="min-h-dvh flex flex-col items-center py-4 px-3 sm:px-4">
+    <div className="game-shell min-h-dvh flex flex-col items-center px-3 sm:px-4">
       <MuteButton />
 
       {/* Header */}
-      <header className="text-center mb-3">
+      <header className="game-header text-center">
         <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-red-400 bg-clip-text text-transparent">
           Dadukata
         </h1>
@@ -191,7 +191,7 @@ export function GameScreen({ room, roomCode, uid }: GameScreenProps) {
       />
 
       {/* Controls */}
-      <div className="mt-3 w-full">
+      <div className="game-controls-wrap w-full">
         <GameControls
           room={room}
           uid={uid}

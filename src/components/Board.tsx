@@ -144,7 +144,7 @@ export function Board({
     : "rgba(100, 181, 246, 0.5)";
 
   return (
-    <div className="w-full max-w-[500px] mx-auto">
+    <div className="board-wrap w-full mx-auto">
       <div className="board-frame">
         <div
           ref={boardRef}
