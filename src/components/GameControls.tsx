@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Dice } from "./Dice";
 import { useSound } from "../hooks/useSound";
@@ -36,6 +36,12 @@ const TURN_BG: Record<string, string> = {
   cyan: "bg-blue-50 border-blue-200",
   amber: "bg-red-50 border-red-200",
 };
+
+const WAITING_MESSAGES = [
+  "Opponent's Turn",
+  "Watching the board...",
+  "Waiting for the roll...",
+];
 
 /** Small inline SVG die face for player card */
 function MiniDie({ value }: { value: number }) {
@@ -87,6 +93,7 @@ export function GameControls({
   const isRolling = animationPhase === "rolling";
   const { play } = useSound();
   const prevTurnRef = useRef(isMyTurn);
+  const [waitingMessageIndex, setWaitingMessageIndex] = useState(0);
 
   // Play turn ding when it becomes my turn
   useEffect(() => {
@@ -96,8 +103,37 @@ export function GameControls({
     prevTurnRef.current = isMyTurn;
   }, [isMyTurn, play]);
 
-  const lastDice = room.lastMove?.diceValue ?? null;
+  useEffect(() => {
+    if (isMyTurn || animationPhase !== "idle") {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setWaitingMessageIndex((current) => (current + 1) % WAITING_MESSAGES.length);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, [isMyTurn, animationPhase]);
+
+  const lastDice = animationPhase === "rolling" ? null : (room.lastMove?.diceValue ?? null);
+  const opponentUid = Object.keys(room.players).find((id) => id !== uid) ?? null;
+  const effectiveWaitingMessageIndex =
+    isMyTurn || animationPhase !== "idle" ? 0 : waitingMessageIndex;
   const turnColor = isMyTurn ? myColor : opponentColor;
+  const bonusReady =
+    (animationPhase === "idle" || animationPhase === "done") &&
+    room.lastMove?.bonusRoll &&
+    room.turn === room.lastMove.playerId;
+  const turnLabel = bonusReady
+    ? "Bonus Roll!"
+    : isMyTurn
+      ? "Your Turn"
+      : WAITING_MESSAGES[effectiveWaitingMessageIndex];
+  const streakLabel =
+    (room.lastMove?.bonusStreak ?? 0) >= 2
+      ? `Bonus x${room.lastMove?.bonusStreak}`
+      : (room.lastMove?.ladderStreak ?? 0) >= 2
+        ? `Ladder x${room.lastMove?.ladderStreak}`
+        : null;
 
   return (
     <div className="w-full max-w-[500px] mx-auto flex flex-col items-center gap-3">
@@ -131,8 +167,13 @@ export function GameControls({
                   : "text-stone-400"
               }`}
             >
-              {isMyTurn ? "Your Turn" : "Opponent's Turn"}
+              {turnLabel}
             </span>
+            {streakLabel && (animationPhase === "idle" || animationPhase === "done") && (
+              <span className="text-xs font-bold text-stone-500">
+                {streakLabel}
+              </span>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -148,6 +189,7 @@ export function GameControls({
           connected={true}
           lastDice={lastDice}
           isRoller={room.lastMove?.playerId === uid}
+          wins={room.winCounts?.[uid] ?? 0}
         />
         <PlayerCard
           name={opponentDisplayName}
@@ -156,14 +198,15 @@ export function GameControls({
           isActive={!isMyTurn}
           label="Opponent"
           connected={
-            room.players[
-              Object.keys(room.players).find((id) => id !== uid) ?? ""
-            ]?.connected ?? true
+            opponentUid ? (room.players[opponentUid]?.connected ?? true) : true
           }
           lastDice={lastDice}
           isRoller={
             room.lastMove?.playerId !== undefined &&
             room.lastMove.playerId !== uid
+          }
+          wins={
+            opponentUid ? (room.winCounts?.[opponentUid] ?? 0) : 0
           }
         />
       </div>
@@ -197,7 +240,9 @@ export function GameControls({
               ? "Rolling..."
               : animationPhase === "moving"
                 ? "Moving..."
-                : canRoll
+                : animationPhase === "done"
+                  ? "Bonus Roll!"
+                  : canRoll
                   ? "🎲 Roll Dice"
                   : "Wait..."}
           </motion.button>
@@ -229,6 +274,7 @@ function PlayerCard({
   connected,
   lastDice,
   isRoller,
+  wins,
 }: {
   name: string;
   color: "cyan" | "amber";
@@ -238,6 +284,7 @@ function PlayerCard({
   connected: boolean;
   lastDice: number | null;
   isRoller: boolean;
+  wins: number;
 }) {
   return (
     <div
@@ -270,6 +317,9 @@ function PlayerCard({
       <div className="min-w-0 flex-1">
         <div className="text-xs text-stone-400 font-medium">{label}</div>
         <div className="text-sm font-semibold text-stone-800 truncate">{name}</div>
+        <div className="text-[11px] text-stone-400 font-medium">
+          Wins {wins}
+        </div>
       </div>
 
       {/* Last dice + position */}

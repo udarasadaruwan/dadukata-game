@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { createRoom, joinRoom } from "../lib/firebase/rooms";
+import { getRoomInviteLink } from "../lib/app/url";
 
 interface RoomLobbyProps {
   uid: string;
@@ -60,7 +61,7 @@ export function RoomLobby({
   };
 
   const handleCopyLink = async (code: string) => {
-    const link = `${window.location.origin}${window.location.pathname}?room=${code}`;
+    const link = getRoomInviteLink(code);
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);

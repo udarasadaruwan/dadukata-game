@@ -31,8 +31,13 @@ export function Dice({ lastMove, isRolling, onRollComplete }: DiceProps) {
     timeoutsRef.current = [];
   }, []);
 
-  const lastMoveRef = useRef(lastMove);
-  lastMoveRef.current = lastMove;
+  const getCyclingValue = useCallback((finalValue: number) => {
+    let next = Math.floor(Math.random() * 6) + 1;
+    if (next === finalValue) {
+      next = (next % 6) + 1;
+    }
+    return next;
+  }, []);
 
   useEffect(() => {
     // If not rolling, reset our guard and clear timers
@@ -44,14 +49,14 @@ export function Dice({ lastMove, isRolling, onRollComplete }: DiceProps) {
 
     // If we are already rolling, don't restart the timers
     // This protects against unrelated re-renders interrupting the dice!
-    if (prevIsRolling.current || !lastMoveRef.current) {
+    if (prevIsRolling.current || !lastMove) {
       return;
     }
 
     prevIsRolling.current = true;
     play("diceRoll");
 
-    const diceVal = lastMoveRef.current.diceValue;
+    const diceVal = lastMove.diceValue;
 
     if (reducedMotion) {
       queueMicrotask(() => {
@@ -64,7 +69,7 @@ export function Dice({ lastMove, isRolling, onRollComplete }: DiceProps) {
 
     // Phase 1: Fast cycling (0-1.5s) — every 60ms
     const fastInterval = setInterval(() => {
-      setDisplayValue(Math.floor(Math.random() * 6) + 1);
+      setDisplayValue(getCyclingValue(diceVal));
     }, 60);
     intervalsRef.current.push(fastInterval);
 
@@ -72,7 +77,7 @@ export function Dice({ lastMove, isRolling, onRollComplete }: DiceProps) {
     const t1 = setTimeout(() => {
       clearInterval(fastInterval);
       const medInterval = setInterval(() => {
-        setDisplayValue(Math.floor(Math.random() * 6) + 1);
+        setDisplayValue(getCyclingValue(diceVal));
       }, 150);
       intervalsRef.current.push(medInterval);
 
@@ -80,7 +85,7 @@ export function Dice({ lastMove, isRolling, onRollComplete }: DiceProps) {
       const t2 = setTimeout(() => {
         clearInterval(medInterval);
         const slowInterval = setInterval(() => {
-          setDisplayValue(Math.floor(Math.random() * 6) + 1);
+          setDisplayValue(getCyclingValue(diceVal));
         }, 300);
         intervalsRef.current.push(slowInterval);
 
@@ -104,7 +109,15 @@ export function Dice({ lastMove, isRolling, onRollComplete }: DiceProps) {
 
     // We do NOT clear timers on cleanup here anymore!
     // The timers will naturally finish, or be cleared when isRolling becomes false.
-  }, [isRolling, reducedMotion, handleRollComplete, play, clearAllTimers]);
+  }, [
+    isRolling,
+    lastMove,
+    reducedMotion,
+    handleRollComplete,
+    play,
+    clearAllTimers,
+    getCyclingValue,
+  ]);
 
   useEffect(() => {
     if (!isRolling) {

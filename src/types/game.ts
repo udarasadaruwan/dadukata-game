@@ -24,6 +24,9 @@ export interface LastMove {
   hitLadder: number | null;
   hitSnake: number | null;
   noMove: boolean;
+  bonusRoll?: boolean;
+  bonusStreak?: number;
+  ladderStreak?: number;
   timestamp: number;
 }
 
@@ -35,6 +38,7 @@ export interface RoomState {
   dice: DiceState | null;
   players: Record<string, PlayerState>;
   positions: Record<string, number>;
+  winCounts?: Record<string, number>;
   lastMove: LastMove | null;
 }
 

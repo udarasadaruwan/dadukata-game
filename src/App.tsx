@@ -3,13 +3,9 @@ import { motion } from "motion/react";
 import { useAuth } from "./hooks/useAuth";
 import { useRoom } from "./hooks/useRoom";
 import { joinRoom } from "./lib/firebase/rooms";
+import { getRoomRoutePath, getUrlRoomCode } from "./lib/app/url";
 import { RoomLobby } from "./components/RoomLobby";
 import { GameScreen } from "./components/GameScreen";
-
-function getUrlRoomCode(): string | null {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("room")?.toUpperCase() ?? null;
-}
 
 export default function App() {
   const { uid, loading: authLoading } = useAuth();
@@ -42,7 +38,7 @@ export default function App() {
           setRoomCode(null);
           setJoinError(result.error ?? "Could not rejoin room.");
           setAutoJoinAttempted(true);
-          window.history.replaceState({}, "", window.location.pathname);
+          window.history.replaceState({}, "", getRoomRoutePath());
         } else {
           setAutoJoinAttempted(true);
         }
@@ -51,7 +47,7 @@ export default function App() {
         setRoomCode(null);
         setJoinError("Connection error while rejoining.");
         setAutoJoinAttempted(true);
-        window.history.replaceState({}, "", window.location.pathname);
+        window.history.replaceState({}, "", getRoomRoutePath());
       });
   }, [uid, roomCode, autoJoinAttempted]);
 
@@ -59,7 +55,7 @@ export default function App() {
     setRoomCode(code);
     setJoinError(null);
     setAutoJoinAttempted(true); // don't re-trigger auto-join
-    window.history.replaceState({}, "", `?room=${code}`);
+    window.history.replaceState({}, "", getRoomRoutePath(code));
   }, []);
 
   // Loading state

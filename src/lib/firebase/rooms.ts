@@ -51,6 +51,9 @@ export async function createRoom(
     positions: {
       [uid]: 0,
     },
+    winCounts: {
+      [uid]: 0,
+    },
     lastMove: null,
   };
 
@@ -101,7 +104,7 @@ export async function joinRoom(
   // Already in the room → reconnecting
   if (playerUids.includes(uid)) {
     try {
-      await set(ref(db, `rooms/${code}/players/${uid}/connected`), true);
+      await setupPresence(code, uid);
       console.log(`[Dathukata:FB] joinRoom: reconnected uid=${uid} to room=${code}`);
     } catch (err) {
       console.error(`[Dathukata:FB] joinRoom reconnect FAILED:`, err);
@@ -126,11 +129,13 @@ export async function joinRoom(
       displayName,
     },
     [`positions/${uid}`]: 0,
+    [`winCounts/${uid}`]: room.winCounts?.[uid] ?? 0,
     status: "playing",
   };
 
   try {
     await update(roomRef(code), updates);
+    await setupPresence(code, uid);
     console.log(`[Dathukata:FB] joinRoom: uid=${uid} joined room=${code}`);
   } catch (err) {
     console.error(`[Dathukata:FB] joinRoom write FAILED:`, err);
@@ -161,6 +166,10 @@ export async function performRoll(
   previousPosition: number,
   nextTurnUid: string,
   isWin: boolean,
+  bonusRoll: boolean,
+  bonusStreak: number,
+  ladderStreak: number,
+  currentWinCount: number,
 ): Promise<void> {
   const now = Date.now();
 
@@ -179,6 +188,9 @@ export async function performRoll(
     hitLadder: moveResult.hitLadder,
     hitSnake: moveResult.hitSnake,
     noMove: moveResult.noMove,
+    bonusRoll,
+    bonusStreak,
+    ladderStreak,
     timestamp: now,
   };
 
@@ -192,6 +204,7 @@ export async function performRoll(
   if (isWin) {
     updates.status = "finished";
     updates.winner = uid;
+    updates[`winCounts/${uid}`] = currentWinCount + 1;
   }
 
   console.log(`[Dathukata:FB] performRoll: uid=${uid}, dice=${diceValue}, ${previousPosition}→${moveResult.finalPosition}, win=${isWin}`);
@@ -213,6 +226,10 @@ export async function setupPresence(
   code: string,
   uid: string,
 ): Promise<void> {
+  const playerRef = ref(db, `rooms/${code}/players/${uid}`);
+  const snapshot = await get(playerRef);
+  if (!snapshot.exists()) return;
+
   const connectedRef = ref(db, `rooms/${code}/players/${uid}/connected`);
   await set(connectedRef, true);
   await onDisconnect(connectedRef).set(false);

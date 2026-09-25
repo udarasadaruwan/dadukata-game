@@ -15,8 +15,13 @@
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
           }
         },
+        "winCounts": {
+          "$uid": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
         "dice": {
-          ".validate": "newData.hasChildren(['value', 'rolledBy', 'rolledAt'])",
+          ".validate": "!newData.exists() || newData.hasChildren(['value', 'rolledBy', 'rolledAt'])",
           "value": {
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 6"
           },
@@ -24,13 +29,19 @@
           "rolledAt": { ".validate": "newData.isNumber()" }
         },
         "lastMove": {
-          ".validate": "newData.hasChildren(['playerId', 'from', 'to', 'intermediate', 'diceValue', 'timestamp'])"
+          ".validate": "!newData.exists() || newData.hasChildren(['playerId', 'from', 'to', 'intermediate', 'diceValue', 'timestamp'])"
+        },
+        "reaction": {
+          ".validate": "!newData.exists() || newData.hasChildren(['emoji', 'playerId', 'timestamp'])",
+          "emoji": { ".validate": "newData.isString() && newData.val().length <= 8" },
+          "playerId": { ".validate": "newData.isString()" },
+          "timestamp": { ".validate": "newData.isNumber()" }
         },
         "status": {
           ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'playing' || newData.val() === 'finished')"
         },
         "turn": { ".validate": "newData.isString()" },
-        "winner": { ".validate": "newData.isString()" },
+        "winner": { ".validate": "!newData.exists() || newData.isString()" },
         "createdAt": { ".validate": "newData.isNumber()" }
       }
     }

@@ -10,6 +10,7 @@ import { WinScreen } from "./WinScreen";
 import { DisconnectOverlay } from "./DisconnectOverlay";
 import { MuteButton } from "./MuteButton";
 import { EmojiBar } from "./EmojiBar";
+import { getRoomInviteLink } from "../lib/app/url";
 
 interface GameScreenProps {
   room: RoomState;
@@ -20,7 +21,7 @@ interface GameScreenProps {
 function WaitingLobby({ roomCode }: { roomCode: string }) {
   const [copied, setCopied] = useState(false);
 
-  const shareLink = `${window.location.origin}/?room=${roomCode}`;
+  const shareLink = getRoomInviteLink(roomCode);
 
   const handleCopyCode = async () => {
     try {

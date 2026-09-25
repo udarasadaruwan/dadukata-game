@@ -25,7 +25,9 @@ export function useRoom(
     }
 
     hasSubscribed.current = true;
-    setupPresence(roomCode, uid);
+    void setupPresence(roomCode, uid).catch((err) => {
+      console.warn("[useRoom] Presence setup skipped:", err);
+    });
 
     const unsubscribe = subscribeToRoom(roomCode, (data) => {
       setRoom(data);
