@@ -85,7 +85,7 @@ export function RoomLobby({
             Dathukata
           </h1>
           <p className="text-stone-500 text-sm mt-1">
-            Snakes & Ladders · 2 Players
+            Snakes & Ladders · 2-4 Players
           </p>
         </div>
 
@@ -212,7 +212,7 @@ export function RoomLobby({
               )}
             </motion.button>
             <p className="text-xs text-stone-400 mt-4">
-              Waiting for opponent to join...
+              Waiting for players to join...
             </p>
             <div className="mt-2 flex justify-center gap-1">
               {[0, 1, 2].map((i) => (

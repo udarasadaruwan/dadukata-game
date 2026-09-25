@@ -1,6 +1,6 @@
 export type GameStatus = "waiting" | "playing" | "finished";
 
-export type PlayerColor = "cyan" | "amber";
+export type PlayerColor = "cyan" | "amber" | "emerald" | "violet";
 
 export interface PlayerState {
   color: PlayerColor;

@@ -12,6 +12,9 @@ import type { RoomState, PlayerColor, DiceState, LastMove } from "../../types/ga
 import type { MoveResult } from "../../types/game";
 import { generateRoomCode } from "../game/board";
 
+export const MAX_PLAYERS = 4;
+const PLAYER_COLORS: PlayerColor[] = ["cyan", "amber", "emerald", "violet"];
+
 function roomRef(code: string) {
   return ref(db, `rooms/${code}`);
 }
@@ -68,7 +71,7 @@ export async function createRoom(
 }
 
 /**
- * Joins an existing room as Player 2 (amber).
+ * Joins an existing room. Up to 4 players can share a room.
  * Validates: room exists, not full, not expired (>1 hour old & finished).
  */
 export async function joinRoom(
@@ -104,6 +107,9 @@ export async function joinRoom(
   // Already in the room → reconnecting
   if (playerUids.includes(uid)) {
     try {
+      await update(roomRef(code), {
+        [`players/${uid}/displayName`]: displayName,
+      });
       await setupPresence(code, uid);
       console.log(`[Dathukata:FB] joinRoom: reconnected uid=${uid} to room=${code}`);
     } catch (err) {
@@ -113,24 +119,27 @@ export async function joinRoom(
     return { success: true };
   }
 
-  if (playerUids.length >= 2) {
+  if (playerUids.length >= MAX_PLAYERS) {
     return {
       success: false,
-      error: "Room is full. Only 2 players can join.",
+      error: `Room is full. Only ${MAX_PLAYERS} players can join.`,
     };
   }
 
-  // Add Player 2 and start the game
+  const color = PLAYER_COLORS[playerUids.length] ?? "violet";
   const updates: Record<string, unknown> = {
     [`players/${uid}`]: {
-      color: "amber" as PlayerColor,
+      color,
       connected: true,
       joinedAt: Date.now(),
       displayName,
     },
     [`positions/${uid}`]: 0,
     [`winCounts/${uid}`]: room.winCounts?.[uid] ?? 0,
-    status: "playing",
+    status:
+      room.status === "waiting" && playerUids.length + 1 >= 2
+        ? "playing"
+        : room.status,
   };
 
   try {

@@ -11,13 +11,6 @@ export interface UseGameReturn {
   isMyTurn: boolean;
   canRoll: boolean;
   animationPhase: AnimationPhase;
-  myColor: "cyan" | "amber";
-  opponentColor: "cyan" | "amber";
-  myPosition: number;
-  opponentPosition: number;
-  myDisplayName: string;
-  opponentDisplayName: string;
-  opponentUid: string | null;
   opponentDisconnected: boolean;
   roll: () => Promise<void>;
   playAgain: () => Promise<void>;
@@ -48,33 +41,22 @@ export function useGame(
     [room],
   );
 
-  const opponentUid = useMemo(
-    () => playerUids.find((id) => id !== uid) ?? null,
+  const otherPlayerUids = useMemo(
+    () => playerUids.filter((id) => id !== uid),
     [playerUids, uid],
   );
 
   const isMyTurn = room?.turn === uid;
   const canRoll =
-    isMyTurn && animationPhase === "idle" && room?.status === "playing" && !isSubmitting;
+    isMyTurn &&
+    animationPhase === "idle" &&
+    room?.status === "playing" &&
+    playerUids.length >= 2 &&
+    !isSubmitting;
 
-  const myColor = room?.players[uid]?.color ?? "cyan";
-  const opponentColor = opponentUid
-    ? (room?.players[opponentUid]?.color ?? "amber")
-    : "amber";
-
-  const myPosition = room?.positions[uid] ?? 0;
-  const opponentPosition = opponentUid
-    ? (room?.positions[opponentUid] ?? 0)
-    : 0;
-
-  const myDisplayName = room?.players[uid]?.displayName ?? "Player 1";
-  const opponentDisplayName = opponentUid
-    ? (room?.players[opponentUid]?.displayName ?? "Player 2")
-    : "Waiting...";
-
-  const opponentDisconnected = opponentUid
-    ? !(room?.players[opponentUid]?.connected ?? true)
-    : false;
+  const opponentDisconnected = otherPlayerUids.some(
+    (playerUid) => !(room?.players[playerUid]?.connected ?? true),
+  );
 
   // Detect new dice rolls and trigger animation sequence
   useEffect(() => {
@@ -116,7 +98,7 @@ export function useGame(
   }, [room]);
 
   const roll = useCallback(async () => {
-    if (!room || !canRoll || !opponentUid) return;
+    if (!room || !canRoll || playerUids.length < 2) return;
 
     setIsSubmitting(true);
     setRollError(null);
@@ -125,7 +107,9 @@ export function useGame(
     const diceValue = generateDiceRoll();
     const moveResult = resolveMove(currentPos, diceValue);
     const bonusRoll = (diceValue === 1 || diceValue === 6) && !moveResult.isWin;
-    const nextTurnUid = bonusRoll ? uid : opponentUid;
+    const currentTurnIndex = Math.max(0, playerUids.indexOf(uid));
+    const nextPlayerIndex = (currentTurnIndex + 1) % playerUids.length;
+    const nextPlayerUid = playerUids[nextPlayerIndex] ?? uid;
     const previousMove = room.lastMove;
     const bonusStreak =
       bonusRoll && previousMove?.playerId === uid && previousMove.bonusRoll
@@ -151,7 +135,7 @@ export function useGame(
         moveResult,
         diceValue,
         currentPos,
-        nextTurnUid,
+        bonusRoll ? uid : nextPlayerUid,
         moveResult.isWin,
         bonusRoll,
         bonusStreak,
@@ -172,7 +156,7 @@ export function useGame(
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
     }
-  }, [room, canRoll, opponentUid, roomCode, uid]);
+  }, [room, canRoll, playerUids, roomCode, uid]);
 
   const playAgain = useCallback(async () => {
     if (!room) return;
@@ -188,13 +172,6 @@ export function useGame(
     isMyTurn,
     canRoll,
     animationPhase,
-    myColor,
-    opponentColor,
-    myPosition,
-    opponentPosition,
-    myDisplayName,
-    opponentDisplayName,
-    opponentUid,
     opponentDisconnected,
     roll,
     playAgain,

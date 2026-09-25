@@ -55,7 +55,7 @@ function WaitingLobby({ roomCode }: { roomCode: string }) {
         <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-red-400 bg-clip-text text-transparent mb-2">
           Dathukata
         </h1>
-        <p className="text-stone-500 text-sm mb-6">Room created! Share the code below with your friend.</p>
+        <p className="text-stone-500 text-sm mb-6">Room created! Share the code below with your friends.</p>
 
         {/* Room Code Display */}
         <div className="mb-4">
@@ -103,7 +103,7 @@ function WaitingLobby({ roomCode }: { roomCode: string }) {
             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse [animation-delay:0.3s]" />
             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse [animation-delay:0.6s]" />
           </div>
-          <p className="text-stone-500 text-sm">Waiting for opponent to join...</p>
+          <p className="text-stone-500 text-sm">Waiting for players to join...</p>
         </div>
       </motion.div>
     </div>
@@ -194,12 +194,6 @@ export function GameScreen({ room, roomCode, uid }: GameScreenProps) {
           isMyTurn={game.isMyTurn}
           canRoll={game.canRoll}
           animationPhase={game.animationPhase}
-          myColor={game.myColor}
-          opponentColor={game.opponentColor}
-          myDisplayName={game.myDisplayName}
-          opponentDisplayName={game.opponentDisplayName}
-          myPosition={game.myPosition}
-          opponentPosition={game.opponentPosition}
           onRoll={game.roll}
           onDiceAnimationComplete={game.onDiceAnimationComplete}
           isSubmitting={game.isSubmitting}

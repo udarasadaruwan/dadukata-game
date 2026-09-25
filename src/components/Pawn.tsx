@@ -20,11 +20,22 @@ interface PawnProps {
 const BODY_COLORS: Record<PlayerColor, { fill: string; stroke: string; light: string }> = {
   cyan: { fill: "#64B5F6", stroke: "#1E88E5", light: "#BBDEFB" },
   amber: { fill: "#FF8A80", stroke: "#E53935", light: "#FFCDD2" },
+  emerald: { fill: "#34D399", stroke: "#059669", light: "#A7F3D0" },
+  violet: { fill: "#A78BFA", stroke: "#7C3AED", light: "#DDD6FE" },
 };
 
 const GLOW_CLASS: Record<PlayerColor, string> = {
   cyan: "pawn-active-cyan",
   amber: "pawn-active-amber",
+  emerald: "pawn-active-cyan",
+  violet: "pawn-active-amber",
+};
+
+const PAWN_OFFSET: Record<PlayerColor, { x: number; y: number }> = {
+  cyan: { x: -0.3, y: -0.18 },
+  amber: { x: 0.3, y: -0.18 },
+  emerald: { x: -0.3, y: 0.22 },
+  violet: { x: 0.3, y: 0.22 },
 };
 
 export function Pawn({
@@ -46,18 +57,19 @@ export function Pawn({
   const lastAnimatedTimestamp = useRef(0);
 
   const pawnSize = Math.max(Math.round(boardSize / 20), 18);
-  const offset = color === "cyan" ? -pawnSize * 0.3 : pawnSize * 0.3;
+  const offsetX = pawnSize * PAWN_OFFSET[color].x;
+  const offsetY = pawnSize * PAWN_OFFSET[color].y;
 
   const toPixels = useCallback(
     (square: number) => {
       if (square <= 0) {
         const cell = boardSize / 10;
-        return { x: cell * 0.5 + offset, y: boardSize + cell * 0.3 };
+        return { x: cell * 0.5 + offsetX, y: boardSize + cell * 0.3 + offsetY };
       }
       const pos = getSquarePixelPosition(square, boardSize);
-      return { x: pos.x + offset, y: pos.y };
+      return { x: pos.x + offsetX, y: pos.y + offsetY };
     },
-    [boardSize, offset],
+    [boardSize, offsetX, offsetY],
   );
 
   // Set initial position on mount / board resize
@@ -247,8 +259,8 @@ export function Pawn({
           {/* Smile */}
           <path d="M 14 27 Q 20 32 26 27" fill="none" stroke="#333" strokeWidth="1.3" strokeLinecap="round" />
           {/* Rosy cheeks */}
-          <circle cx="10" cy="25" r="2.5" fill={color === "cyan" ? "#FFCDD2" : "#FFE0B2"} opacity="0.5" />
-          <circle cx="30" cy="25" r="2.5" fill={color === "cyan" ? "#FFCDD2" : "#FFE0B2"} opacity="0.5" />
+          <circle cx="10" cy="25" r="2.5" fill={color === "amber" ? "#FFE0B2" : "#FFCDD2"} opacity="0.5" />
+          <circle cx="30" cy="25" r="2.5" fill={color === "amber" ? "#FFE0B2" : "#FFCDD2"} opacity="0.5" />
         </svg>
       </div>
     </div>

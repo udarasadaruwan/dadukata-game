@@ -1,9 +1,10 @@
 import { motion } from "motion/react";
 import { Confetti } from "./Confetti";
+import type { PlayerColor } from "../types/game";
 
 interface WinScreenProps {
   winnerName: string;
-  winnerColor: "cyan" | "amber";
+  winnerColor: PlayerColor;
   isMe: boolean;
   onPlayAgain: () => void;
 }
@@ -11,6 +12,8 @@ interface WinScreenProps {
 const COLOR_CLASSES: Record<string, string> = {
   cyan: "from-blue-400 to-blue-600",
   amber: "from-red-400 to-orange-500",
+  emerald: "from-emerald-400 to-emerald-600",
+  violet: "from-violet-400 to-violet-600",
 };
 
 export function WinScreen({

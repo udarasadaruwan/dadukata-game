@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Dice } from "./Dice";
 import { useSound } from "../hooks/useSound";
-import type { RoomState, AnimationPhase } from "../types/game";
+import type { RoomState, AnimationPhase, PlayerColor } from "../types/game";
 
 interface GameControlsProps {
   room: RoomState;
@@ -10,12 +10,6 @@ interface GameControlsProps {
   isMyTurn: boolean;
   canRoll: boolean;
   animationPhase: AnimationPhase;
-  myColor: "cyan" | "amber";
-  opponentColor: "cyan" | "amber";
-  myDisplayName: string;
-  opponentDisplayName: string;
-  myPosition: number;
-  opponentPosition: number;
   onRoll: () => void;
   onDiceAnimationComplete: () => void;
   isSubmitting: boolean;
@@ -25,23 +19,51 @@ interface GameControlsProps {
 const COLOR_DOT: Record<string, string> = {
   cyan: "bg-blue-400",
   amber: "bg-red-400",
+  emerald: "bg-emerald-400",
+  violet: "bg-violet-400",
 };
 
 const BORDER_GLOW: Record<string, string> = {
   cyan: "ring-blue-300/50 shadow-blue-200/30",
   amber: "ring-red-300/50 shadow-red-200/30",
+  emerald: "ring-emerald-300/50 shadow-emerald-200/30",
+  violet: "ring-violet-300/50 shadow-violet-200/30",
 };
 
 const TURN_BG: Record<string, string> = {
   cyan: "bg-blue-50 border-blue-200",
   amber: "bg-red-50 border-red-200",
+  emerald: "bg-emerald-50 border-emerald-200",
+  violet: "bg-violet-50 border-violet-200",
+};
+
+const TEXT_COLOR: Record<string, string> = {
+  cyan: "text-blue-600",
+  amber: "text-red-500",
+  emerald: "text-emerald-600",
+  violet: "text-violet-600",
+};
+
+const GLOW_COLOR: Record<string, string> = {
+  cyan: "rgba(100,181,246,0.15)",
+  amber: "rgba(255,138,128,0.15)",
+  emerald: "rgba(52,211,153,0.15)",
+  violet: "rgba(167,139,250,0.15)",
+};
+
+const DOT_GLOW: Record<string, string> = {
+  cyan: "#64B5F6",
+  amber: "#FF8A80",
+  emerald: "#34D399",
+  violet: "#A78BFA",
 };
 
 const WAITING_MESSAGES = [
-  "Opponent's Turn",
   "Watching the board...",
   "Waiting for the roll...",
+  "Planning the next move...",
 ];
+const WAITING_MESSAGE_COUNT = WAITING_MESSAGES.length + 1;
 
 /** Small inline SVG die face for player card */
 function MiniDie({ value }: { value: number }) {
@@ -79,12 +101,6 @@ export function GameControls({
   isMyTurn,
   canRoll,
   animationPhase,
-  myColor,
-  opponentColor,
-  myDisplayName,
-  opponentDisplayName,
-  myPosition,
-  opponentPosition,
   onRoll,
   onDiceAnimationComplete,
   isSubmitting,
@@ -109,16 +125,23 @@ export function GameControls({
     }
 
     const interval = setInterval(() => {
-      setWaitingMessageIndex((current) => (current + 1) % WAITING_MESSAGES.length);
+      setWaitingMessageIndex((current) => (current + 1) % WAITING_MESSAGE_COUNT);
     }, 2400);
     return () => clearInterval(interval);
   }, [isMyTurn, animationPhase]);
 
   const lastDice = animationPhase === "rolling" ? null : (room.lastMove?.diceValue ?? null);
-  const opponentUid = Object.keys(room.players).find((id) => id !== uid) ?? null;
+  const playerUids = Object.keys(room.players);
+  const currentTurnColor = room.players[room.turn]?.color ?? "cyan";
+  const currentTurnName = room.players[room.turn]?.displayName ?? "Player";
+  const myColor = room.players[uid]?.color ?? "cyan";
   const effectiveWaitingMessageIndex =
     isMyTurn || animationPhase !== "idle" ? 0 : waitingMessageIndex;
-  const turnColor = isMyTurn ? myColor : opponentColor;
+  const movingTarget =
+    animationPhase !== "rolling" && animationPhase !== "idle"
+      ? room.lastMove
+      : null;
+  const turnColor = currentTurnColor;
   const bonusReady =
     (animationPhase === "idle" || animationPhase === "done") &&
     room.lastMove?.bonusRoll &&
@@ -127,7 +150,9 @@ export function GameControls({
     ? "Bonus Roll!"
     : isMyTurn
       ? "Your Turn"
-      : WAITING_MESSAGES[effectiveWaitingMessageIndex];
+      : effectiveWaitingMessageIndex === 0
+        ? `${currentTurnName}'s Turn`
+        : WAITING_MESSAGES[effectiveWaitingMessageIndex - 1];
   const streakLabel =
     (room.lastMove?.bonusStreak ?? 0) >= 2
       ? `Bonus x${room.lastMove?.bonusStreak}`
@@ -144,7 +169,7 @@ export function GameControls({
         } ${isMyTurn ? "turn-banner-active" : ""}`}
         style={{
           boxShadow: isMyTurn
-            ? `0 0 16px ${myColor === "cyan" ? "rgba(100,181,246,0.15)" : "rgba(255,138,128,0.15)"}`
+            ? `0 0 16px ${GLOW_COLOR[myColor]}`
             : "none",
         }}
       >
@@ -161,9 +186,7 @@ export function GameControls({
             <span
               className={`text-base font-bold transition-colors duration-300 ${
                 isMyTurn
-                  ? myColor === "cyan"
-                    ? "text-blue-600"
-                    : "text-red-500"
+                  ? TEXT_COLOR[myColor]
                   : "text-stone-400"
               }`}
             >
@@ -180,35 +203,26 @@ export function GameControls({
 
       {/* Player info */}
       <div className="w-full grid grid-cols-2 gap-2">
-        <PlayerCard
-          name={myDisplayName}
-          color={myColor}
-          position={myPosition}
-          isActive={isMyTurn}
-          label="You"
-          connected={true}
-          lastDice={lastDice}
-          isRoller={room.lastMove?.playerId === uid}
-          wins={room.winCounts?.[uid] ?? 0}
-        />
-        <PlayerCard
-          name={opponentDisplayName}
-          color={opponentColor}
-          position={opponentPosition}
-          isActive={!isMyTurn}
-          label="Opponent"
-          connected={
-            opponentUid ? (room.players[opponentUid]?.connected ?? true) : true
-          }
-          lastDice={lastDice}
-          isRoller={
-            room.lastMove?.playerId !== undefined &&
-            room.lastMove.playerId !== uid
-          }
-          wins={
-            opponentUid ? (room.winCounts?.[opponentUid] ?? 0) : 0
-          }
-        />
+        {playerUids.map((playerUid, index) => {
+          const player = room.players[playerUid];
+          return (
+            <PlayerCard
+              key={playerUid}
+              name={player.displayName}
+              color={player.color}
+              position={room.positions[playerUid] ?? 0}
+              isActive={room.turn === playerUid}
+              label={playerUid === uid ? "You" : `Player ${index + 1}`}
+              connected={playerUid === uid ? true : player.connected}
+              lastDice={lastDice}
+              isRoller={room.lastMove?.playerId === playerUid}
+              wins={room.winCounts?.[playerUid] ?? 0}
+              targetPosition={
+                movingTarget?.playerId === playerUid ? movingTarget.to : null
+              }
+            />
+          );
+        })}
       </div>
 
       {/* Dice + Roll Button */}
@@ -275,9 +289,10 @@ function PlayerCard({
   lastDice,
   isRoller,
   wins,
+  targetPosition,
 }: {
   name: string;
-  color: "cyan" | "amber";
+  color: PlayerColor;
   position: number;
   isActive: boolean;
   label: string;
@@ -285,6 +300,7 @@ function PlayerCard({
   lastDice: number | null;
   isRoller: boolean;
   wins: number;
+  targetPosition: number | null;
 }) {
   return (
     <div
@@ -303,7 +319,7 @@ function PlayerCard({
           style={
             isActive
               ? {
-                  boxShadow: `0 0 8px ${color === "cyan" ? "#64B5F6" : "#FF8A80"}55`,
+                  boxShadow: `0 0 8px ${DOT_GLOW[color]}55`,
                 }
               : undefined
           }
@@ -316,7 +332,16 @@ function PlayerCard({
       {/* Name + label */}
       <div className="min-w-0 flex-1">
         <div className="text-xs text-stone-400 font-medium">{label}</div>
-        <div className="text-sm font-semibold text-stone-800 truncate">{name}</div>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="text-sm font-semibold text-stone-800 truncate">
+            {name}
+          </div>
+          {targetPosition !== null && (
+            <div className="text-[11px] font-bold text-amber-600 flex-shrink-0">
+              → {targetPosition}
+            </div>
+          )}
+        </div>
         <div className="text-[11px] text-stone-400 font-medium">
           Wins {wins}
         </div>
