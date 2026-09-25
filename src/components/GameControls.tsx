@@ -141,6 +141,10 @@ export function GameControls({
     animationPhase !== "rolling" && animationPhase !== "idle"
       ? room.lastMove
       : null;
+  const pendingMove =
+    animationPhase === "rolling" || animationPhase === "moving"
+      ? room.lastMove
+      : null;
   const turnColor = currentTurnColor;
   const bonusReady =
     (animationPhase === "idle" || animationPhase === "done") &&
@@ -210,7 +214,11 @@ export function GameControls({
               key={playerUid}
               name={player.displayName}
               color={player.color}
-              position={room.positions[playerUid] ?? 0}
+              position={
+                pendingMove?.playerId === playerUid
+                  ? pendingMove.from
+                  : (room.positions[playerUid] ?? 0)
+              }
               isActive={room.turn === playerUid}
               label={playerUid === uid ? "You" : `Player ${index + 1}`}
               connected={playerUid === uid ? true : player.connected}
